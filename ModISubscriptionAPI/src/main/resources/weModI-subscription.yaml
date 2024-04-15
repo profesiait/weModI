@@ -1,0 +1,186 @@
+openapi: 3.0.1
+info:
+  title: Configurazione weModI versione v4
+  description: API per la configurazione di Fruizioni ed Erogazioni del modulo weModI
+    e caricamento dei relativi certificati di firma
+  version: v4
+servers:
+- url: /api/am/modi/v4
+  description: Base path URL
+paths:
+  /subscriptionservice/aliasWithThumbprint:
+    get:
+      operationId: getAliasWithThumbprint
+      parameters:
+      - name: thumbprint
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/applicationUUIDByKid:
+    get:
+      operationId: getApplicationUUIDByKid
+      parameters:
+      - name: kidPdndApi
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/cacheConfigurations:
+    get:
+      operationId: getCacheConfigurations
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificateSOAP:
+    get:
+      operationId: getCertificateSOAP
+      parameters:
+      - name: firstKeyIdentifier
+        in: query
+        schema:
+          type: string
+      - name: secondKeyIdentifier
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificatesInbound:
+    get:
+      operationId: getCertificatesInboundModi
+      parameters:
+      - name: applicationUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificatesOutboundModi:
+    get:
+      operationId: getCertificatesOutboundModi
+      parameters:
+      - name: applicationUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificatesOutboundPdnd:
+    get:
+      operationId: getCertificatesOutboundPdnd
+      parameters:
+      - name: applicationUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificatesSOAPInbound:
+    get:
+      operationId: getCertificatesSOAPInboundModi
+      parameters:
+      - name: applicationUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/certificatesSOAPOutbound:
+    get:
+      operationId: getCertificatesSOAPOutboundModi
+      parameters:
+      - name: applicationUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/privateKeyByConsumerKeyForModi:
+    get:
+      operationId: getPrivateKeyByConsumerKeyForModi
+      parameters:
+      - name: consumerKey
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/privateKeyByConsumerKeyForPdnd:
+    get:
+      operationId: getPrivateKeyByConsumerKeyForPdnd
+      parameters:
+      - name: consumerKey
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/privateKeyByConsumerKeyForSOAP:
+    get:
+      operationId: getPrivateKeyByConsumerKeyForSOAP
+      parameters:
+      - name: consumerKey
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /subscriptionservice/subscriptionDetails:
+    get:
+      operationId: getSubscriptionDetails
+      parameters:
+      - name: subscriptionUUID
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /swagger.yaml:
+    get:
+      operationId: swaggerYamlGet
+      responses:
+        default:
+          description: default response
+          content:
+            text/yaml: {}

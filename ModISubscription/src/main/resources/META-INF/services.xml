@@ -1,0 +1,26 @@
+<serviceGroup>
+    <service name="ModiSubscription" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass">it.profesia.carbon.apimgt.subscription.ModiCertificateImpl</parameter>
+        <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/capps/ModiSubscription</parameter>
+    </service>
+    <service name="ModiFruizione" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass">it.profesia.carbon.apimgt.subscription.fruizione.ModiPrivateKeyImpl</parameter>
+        <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/capps/ModiFruizione</parameter>
+    </service>
+    <service name="PdndFruizione" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass">it.profesia.carbon.apimgt.subscription.fruizione.PdndPrivateKeyImpl</parameter>
+        <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/capps/PdndFruizione</parameter>
+    </service>
+
+    <parameter name="adminService" locked="true">true</parameter>
+    <parameter name="hiddenService" locked="true">true</parameter>
+</serviceGroup>

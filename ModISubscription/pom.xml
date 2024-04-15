@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>it.profesia</groupId>
+        <artifactId>weModI</artifactId>
+        <version>2.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>it.profesia.carbon.apimgt</groupId>
+    <artifactId>ModiSubscription</artifactId>
+    <packaging>bundle</packaging>
+
+    <name>weModI Subscription (WSO2 Carbon API Control Plane)</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                        <!-- Must include tag also if empty -->
+                        </Private-Package>
+                        <Import-Package>
+                        	org.wso2.carbon.apimgt.api.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.impl.utils.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.common.gateway.util.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.impl.*;version="9.20.74",
+                        	org.wso2.carbon.user.core.*;version="4.6.3",
+                        	org.wso2.carbon.utils.*;version="4.6.3",
+                        </Import-Package>
+                       <Export-Package>
+                        	it.profesia.carbon.apimgt.subscription.*,
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.apimgt</groupId>
+            <artifactId>org.wso2.carbon.apimgt.gateway</artifactId>
+            <version>${carbon.apimgt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

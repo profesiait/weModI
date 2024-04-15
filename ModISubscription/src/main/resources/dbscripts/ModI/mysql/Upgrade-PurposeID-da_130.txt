@@ -1,0 +1,18 @@
+Dal DB weModI eseguire la query:
+
+select concat('SELECT concat(\'INSERT INTO PDND_SUBSCRIPTION_MAPPING (SUBSCRIPTION_UUID, PURPOSE_ID, ENABLED) VALUES (\\\'\', am_sub.UUID, \'\\\', \\\'', pfs.PURPOSE_ID, '\\\', \', \'1);\') FROM AM_SUBSCRIPTION am_sub, AM_APPLICATION am_app WHERE am_sub.APPLICATION_ID = am_app.APPLICATION_ID and am_app.UUID = \'', pfs.APPLICATION_UUID, '\';') 
+from PDND_FRUIZIONE_SUBSCRIPTION pfs
+where pfs.PURPOSE_ID is not null and pfs.ENABLED = 1
+;
+
+Il risultato ottenuto è un insieme di query come le seguenti:
+
+SELECT concat('INSERT INTO PDND_SUBSCRIPTION_MAPPING (SUBSCRIPTION_UUID, PURPOSE_ID, ENABLED) VALUES (\'', am_sub.UUID, '\', \'68b795e9-59a1-4456-948b-662af65c6fac\', ', '1);') FROM AM_SUBSCRIPTION am_sub, AM_APPLICATION am_app WHERE am_sub.APPLICATION_ID = am_app.APPLICATION_ID and am_app.UUID = 'ef7bd9a4-df1c-48d2-974e-1d20248c2c59';
+SELECT concat('INSERT INTO PDND_SUBSCRIPTION_MAPPING (SUBSCRIPTION_UUID, PURPOSE_ID, ENABLED) VALUES (\'', am_sub.UUID, '\', \'175f06ba-84be-457c-84dd-2435871ec7d7\', ', '1);') FROM AM_SUBSCRIPTION am_sub, AM_APPLICATION am_app WHERE am_sub.APPLICATION_ID = am_app.APPLICATION_ID and am_app.UUID = 'ef7bd9a4-df1c-48d2-974e-1d20248c2c59';
+
+Nel DB APIM_DB eseguire le query ottenute, si otterrà come risultato un elenco di INSERT:
+
+INSERT INTO PDND_SUBSCRIPTION_MAPPING (SUBSCRIPTION_UUID, PURPOSE_ID, ENABLED) VALUES ('cf362e84-4021-4b45-b73e-06a905ddb3e8', '175f06ba-84be-457c-84dd-2435871ec7d7', 1);
+INSERT INTO PDND_SUBSCRIPTION_MAPPING (SUBSCRIPTION_UUID, PURPOSE_ID, ENABLED) VALUES ('b1ecce45-8730-4cd9-a3f1-a14d00a36d33', '175f06ba-84be-457c-84dd-2435871ec7d7', 1);
+
+Nel DB weModI eseguire le INSERT ottenute per popolare la tabella con i valori di Purpose ID.
