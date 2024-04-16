@@ -10,7 +10,3 @@
 	path = ModISubscriptionAPI
 	url = http://git.emerasoft.com/interoperabilita/ModI/ModISubscriptionAPI.git
 	branch = master
-[submodule "KeyManager"]
-	path = KeyManager
-	url = http://git.emerasoft.com/interoperabilita/ModI/KeyManager.git
-	branch = master

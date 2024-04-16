@@ -13,11 +13,9 @@
   <url>https://www.1asol.com/profesia/</url>
 
   <modules>
-    <module>KeyManager</module>
     <module>ModiSubscription</module>
     <module>ModIAuthenticator</module>
     <module>ModISubscriptionAPI</module>
-    <module>PDNDProviderJWT</module>
     <module>ModIComponents</module>
   </modules>
 
