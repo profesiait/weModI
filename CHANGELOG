@@ -1,0 +1,2 @@
+## 2.1.0
+* Mediatore WeModIMediator per la fase di fruizione API (sostituisce l'handler per la generazione dei Voucher PDND)

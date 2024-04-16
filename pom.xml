@@ -6,16 +6,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.profesia</groupId>
   <artifactId>weModI</artifactId>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
   <packaging>pom</packaging>
 
   <name>weModI Integrazione WSO2 API Manager</name>
   <url>https://www.1asol.com/profesia/</url>
 
   <modules>
+    <module>KeyManager</module>
     <module>ModiSubscription</module>
     <module>ModIAuthenticator</module>
     <module>ModISubscriptionAPI</module>
+    <module>PDNDProviderJWT</module>
+    <module>ModIComponents</module>
   </modules>
 
   <repositories>
@@ -89,5 +92,6 @@
     <!-- <carbon.apimgt.version>9.26.72</carbon.apimgt.version> -->
     <carbon.apimgt.version>9.28.116</carbon.apimgt.version>
     <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+    <hibernate.validator.version>5.4.3.Final</hibernate.validator.version>
   </properties>
 </project>

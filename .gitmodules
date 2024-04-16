@@ -1,0 +1,16 @@
+[submodule "ModISubscription"]
+	path = ModISubscription
+	url = http://git.emerasoft.com/interoperabilita/ModI/ModISubscription.git
+	branch = master
+[submodule "ModIAuthenticator"]
+	path = ModIAuthenticator
+	url = http://git.emerasoft.com/interoperabilita/ModI/ModIAuthenticator.git
+	branch = master
+[submodule "ModISubscriptionAPI"]
+	path = ModISubscriptionAPI
+	url = http://git.emerasoft.com/interoperabilita/ModI/ModISubscriptionAPI.git
+	branch = master
+[submodule "KeyManager"]
+	path = KeyManager
+	url = http://git.emerasoft.com/interoperabilita/ModI/KeyManager.git
+	branch = master

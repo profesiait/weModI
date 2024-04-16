@@ -1,12 +1,29 @@
-# weModI - Estensione per WSO2
+# weModI plugin WSO2 per l'interoperabilità ModI e PDND
 
-Il plugin weModI integra i pattern ModI e PDND all'interno della piattaforma WSO2 permettendo di pubblicare sulle istanze gateway API che siano compatibili con quanto definito nelle linee guida per l'interoperabilità tra le pubbliche amministrazioni.
 
-## API Management
-WSO [API Manager](https://wso2.com/api-manager/) è la piattaforma che permette di esporre i servizi tramite API all'interno di infrastrutture cloud, on-prem oppure ibride, gli utenti possono pubblicare e gestire il ciclo di vita di ogni versione di API in maniera indipendente.
+* [ModiSubscription](#modisubscription) Bundle per la configurazione dei dati di fruizione ed erogazione
+* [ModiAuthenticator](#modiauthenticator) Libreria JAR per la produzione e validazione dei JWT
+* [ModiSubscriptionAPI](#modisubscriptionapi) API per la configurazione delle API ed Application di erogazione e fruizione
+* [KeyManager](#keymanager) Estensione Key Manager WSO2 per la sottoscrizione delle API PDND
+* [PDND Provider JWT](#pdnd-provider-jwt) Libreria per la generazione dei voucher PDND
+* [Upgrade dalla versione 1.x](#upgrade-dalla-versione-1x)
 
-## Estensione weModI
-Le librerie weModI sono compatibili con l'API Manager WSO2 versione 4.x, permettono di pubblicare API di fruizione e di erogazione in modo da produrre o validare i JWT ed i Voucher PDND richiesti dagli enti erogatori.
 
-## Contatti
-[weModI - estensione WSO2](https://www.profesia.it/it/wemodi-estensione-wso2)
+## [ModiSubscription](./ModISubscription/README.md)
+
+
+## [ModiAuthenticator](./ModIAuthenticator/README.md)
+
+
+## [ModiSubscriptionAPI](./ModISubscriptionAPI/README.md)
+
+
+## [Keymanager](./KeyManager/README.md)
+
+
+## [PDND Provider JWT](./PDNDProviderJWT/README.md)
+
+
+## Upgrade dalla versione 1.x
+In caso di aggiornamento dalle versioni 1.x della componente weModI, occorre eseguire i seguenti passaggi:
+1. Aggiornamento del DBMS ([MySql](./ModISubscription/src/main/resources/dbscripts/ModI/mysql/upgrade-from-1.x.sql), [Oracle](./ModISubscription/src/main/resources/dbscripts/ModI/oracle/upgrade-from-1.x.sql), [Postgres](./ModISubscription/src/main/resources/dbscripts/ModI/postgres/upgrade-from-1.x.sql))

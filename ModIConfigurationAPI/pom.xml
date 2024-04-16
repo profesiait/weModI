@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>it.profesia</groupId>
+        <artifactId>weModI</artifactId>
+        <version>2.1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>it.profesia.carbon.apimgt.configurationApi</groupId>
+    <artifactId>ModIConfigurationAPI</artifactId>
+    <packaging>war</packaging>
+    <name>weModI Configuration API (WSO2 Carbon API Control Plane)</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.apimgt</groupId>
+            <artifactId>org.wso2.carbon.apimgt.gateway</artifactId>
+            <version>${carbon.apimgt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>it.profesia</groupId>
+            <artifactId>ModiSubscription</artifactId>
+            <version>${project.version}</version>
+            <!-- <scope>provided</scope> -->
+        </dependency>
+        <dependency>
+            <groupId>it.profesia</groupId>
+            <artifactId>ModiComponents</artifactId>
+            <version>${project.version}</version>
+            <!-- <scope>provided</scope> -->
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>3.3.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-security-cors</artifactId>
+            <version>3.3.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.1.13.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.apimgt</groupId>
+            <artifactId>org.wso2.carbon.apimgt.rest.api.util</artifactId>
+            <version>${carbon.apimgt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate.validator.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.validation</groupId>
+                    <artifactId>validation-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <!-- this is relative to the pom.xml directory -->
+                            <directory>${project.basedir}/src/main/webapp</directory>
+                            <include>${project.basedir}/src/main/resources</include>
+                        </resource>
+                    </webResources>
+                    <warName>api#am#wemodi</warName>
+                </configuration>
+            </plugin>
+            <plugin>
+				<groupId>io.openapitools.swagger</groupId>
+				<artifactId>swagger-maven-plugin</artifactId>
+				<version>2.1.5</version>
+				<configuration>
+					<resourcePackages>
+						<resourcePackage>it.profesia.carbon.apimgt.configurationApi</resourcePackage>
+					</resourcePackages>
+					<outputDirectory>${project.basedir}/src/main/resources</outputDirectory>
+					<outputFilename>weModI-configuration</outputFilename>
+					<outputFormats>YAML</outputFormats>
+					<prettyPrint>true</prettyPrint>
+					<swaggerConfig>
+						<servers>
+							<server>
+								<url>/api/am/wemodi/v1</url>
+								<description>Base path URL</description>
+							</server>
+						</servers>
+						<info>
+							<title>Configurazione weModI versione v1</title>
+							<version>v1</version>
+							<description>API per la configurazione di Fruizioni ed Erogazioni del modulo weModI e caricamento dei relativi certificati di firma</description>
+						</info>
+					</swaggerConfig>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
