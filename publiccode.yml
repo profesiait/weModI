@@ -5,9 +5,10 @@
 publiccodeYmlVersion: '0.2'
 applicationSuite: weModI
 categories:
-  - interperabilità
   - api-management
   - it-security
+  - identity-management
+  - it-service-management
 dependsOn:
   open:
     - name: WSO2 API Manager
