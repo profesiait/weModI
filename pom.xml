@@ -13,7 +13,7 @@
   <url>https://www.1asol.com/profesia/</url>
 
   <modules>
-    <module>ModiSubscription</module>
+    <module>ModISubscription</module>
     <module>ModIAuthenticator</module>
     <module>ModISubscriptionAPI</module>
   </modules>
