@@ -9,18 +9,20 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import it.profesia.carbon.apimgt.subscription.dao.CertAppMapping;
+import it.profesia.wemodi.subscriptions.dao.CertAppMapping;
 import it.profesia.carbon.apimgt.subscription.ModiCertificate;
 import it.profesia.carbon.apimgt.subscription.ModiCertificateImpl;
-import it.profesia.carbon.apimgt.subscription.dao.ModiPKMapping;
+import it.profesia.wemodi.subscriptions.dao.ModiPKMapping;
 import it.profesia.carbon.apimgt.subscription.fruizione.ModiPrivateKey;
 import it.profesia.carbon.apimgt.subscription.fruizione.ModiPrivateKeyImpl;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
 import it.profesia.carbon.apimgt.subscription.fruizione.PdndPrivateKey;
 import it.profesia.carbon.apimgt.subscription.fruizione.PdndPrivateKeyImpl;
 
@@ -87,14 +89,21 @@ public class ModISubscriptionAPI {
     @Produces({"application/json"})
     @Path("certificatesOutboundModi")
     @ApiResponses(value = { 
-            @ApiResponse(code = 200, message = "Certificato.", response = ModiPKMapping.class)
+            @ApiResponse(code = 200, message = "Chiave privata ModI.", response = ModiPKMapping.class),
+            @ApiResponse(code = 500, message = "Errore generico.")
     })
     public Response getCertificatesOutboundModi(@QueryParam("applicationUUID") String applicationUUID) {
     	log.info("####getCertificatesOutboundModi###");
-    	ModiPKMapping modiMetadata = modiPrivateKey.getPrivateKey(applicationUUID);
-    	if(modiMetadata.isEnabled() == null)
-        	RestApiUtil.handleResourceNotFoundError("No valid certificate metadata found for the specified application", log);
-        return Response.status(200).entity(modiMetadata).build();
+        Response response = Response.status(Status.NOT_FOUND).entity("certificatesOutboundModi").build();
+        try {
+            ModiPKMapping modiMetadata = modiPrivateKey.getPrivateKey(applicationUUID);
+            if(modiMetadata.isEnabled() == null)
+                RestApiUtil.handleResourceNotFoundError("Chiave privata ModI non trovata.", log);
+            response = Response.status(Status.OK).entity(modiMetadata).build();
+        } catch (APIManagementException e) {
+                RestApiUtil.handleInternalServerError(e.getMessage(), e, log);
+        }
+        return response;
     }
 
     @GET
@@ -114,15 +123,22 @@ public class ModISubscriptionAPI {
     @GET
     @Produces({"application/json"})
     @Path("certificatesOutboundPdnd")
-    @ApiResponses(value = { 
-            @ApiResponse(code = 200, message = "Certificato.", response = PdndPKMapping.class)
-    })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Chiave privata PDND.", response = PdndPKMapping.class),
+        @ApiResponse(code = 500, message = "Errore generico.")
+})
     public Response getCertificatesOutboundPdnd(@QueryParam("applicationUUID") String applicationUUID) {
     	log.info("####getCertificatesOutboundPdnd###");
-    	PdndPKMapping pdndMetadata = pdndPrivateKey.getPrivateKey(applicationUUID);
-    	if(pdndMetadata.isEnabled() == null)
-        	RestApiUtil.handleResourceNotFoundError("No valid certificate metadata found for the specified application", log);
-        return Response.status(200).entity(pdndMetadata).build();
+        Response response = Response.status(Status.NOT_FOUND).entity("certificatesOutboundPdnd").build();
+        try {
+    	    PdndPKMapping pdndMetadata = pdndPrivateKey.getPrivateKey(applicationUUID);
+    	    if(pdndMetadata.isEnabled() == null)
+        	    RestApiUtil.handleResourceNotFoundError("Chiave privata PDND non trovata.", log);
+            response = Response.status(Status.OK).entity(pdndMetadata).build();
+        } catch (APIManagementException e) {
+            RestApiUtil.handleInternalServerError(e.getMessage(), e, log);
+        }
+        return response;
     }
 
     @GET
@@ -147,15 +163,23 @@ public class ModISubscriptionAPI {
     @GET
     @Produces({"application/json"})
     @Path("privateKeyByConsumerKeyForPdnd")
-    @ApiResponses(value = { 
-            @ApiResponse(code = 200, message = "Certificati.", response = PdndPKMapping.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Chiave privata PDND.", response = PdndPKMapping.class),
+            @ApiResponse(code = 500, message = "Errore generico.")
     })
     public Response getPrivateKeyByConsumerKeyForPdnd(@QueryParam("consumerKey") String consumerKey) {
     	log.info("####privateKeyByConsumerKeyForPdnd###");
-    	PdndPKMapping pdndPKMapping = pdndPrivateKey.getPrivateKeyByConsumerKey(consumerKey);
-    	if(pdndPKMapping.isEnabled() == null)
-        	RestApiUtil.handleResourceNotFoundError("No details found for the specified consumer key", log);
-        return Response.status(200).entity(pdndPKMapping).build();
+        Response response = null;
+        try {
+            PdndPKMapping pdndPKMapping = pdndPrivateKey.getPrivateKeyByConsumerKey(consumerKey);
+            if(pdndPKMapping.isEnabled() == null)
+                 RestApiUtil.handleResourceNotFoundError("No details found for the specified consumer key", log);
+            response = Response.status(200).entity(pdndPKMapping).build();
+        } catch (APIManagementException e) {
+            log.error("Recupero chiave privata PDND.", e);
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return response;
     }
     
     @GET
@@ -176,14 +200,23 @@ public class ModISubscriptionAPI {
     @Produces({"application/json"})
     @Path("privateKeyByConsumerKeyForModi")
     @ApiResponses(value = { 
-            @ApiResponse(code = 200, message = "Certificati.", response = ModiPKMapping.class)
+            @ApiResponse(code = 200, message = "Chiave privata ModI.", response = ModiPKMapping.class),
+            @ApiResponse(code = 500, message = "Errore generico.")
     })
     public Response getPrivateKeyByConsumerKeyForModi(@QueryParam("consumerKey") String consumerKey) {
     	log.info("####privateKeyByConsumerKeyForModi###");
-    	ModiPKMapping modiPkMapping = modiPrivateKey.getPrivateKeyByConsumerKey(consumerKey);
-    	if(modiPkMapping.isEnabled() == null)
-        	RestApiUtil.handleResourceNotFoundError("No details found for the specified consumer key", log);
-        return Response.status(200).entity(modiPkMapping).build();
+        Response response = Response.status(Status.NOT_FOUND).entity("privateKeyByConsumerKeyForModi").build();
+
+        try {
+            ModiPKMapping modiPkMapping = modiPrivateKey.getPrivateKeyByConsumerKey(consumerKey);
+            if(modiPkMapping.isEnabled() == null)
+                RestApiUtil.handleResourceNotFoundError("Chiave privata ModI non trovata.", log);
+            response = Response.status(Status.OK).entity(modiPkMapping).build();
+        } catch (APIManagementException e) {
+            log.error("Recupero chiave privata ModI.", e);
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return response;
     }
     
     @GET

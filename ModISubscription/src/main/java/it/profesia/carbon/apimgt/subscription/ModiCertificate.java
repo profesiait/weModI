@@ -5,8 +5,8 @@ import java.util.List;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIManagerDatabaseException;
 
-import it.profesia.carbon.apimgt.subscription.dao.CertAppMapping;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.dao.CertAppMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
 
 public interface ModiCertificate {
 

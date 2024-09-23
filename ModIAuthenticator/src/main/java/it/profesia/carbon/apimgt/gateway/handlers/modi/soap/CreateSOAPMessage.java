@@ -4,12 +4,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.Vector;
@@ -36,19 +40,126 @@ import org.apache.ws.security.message.WSSecHeader;
 import org.apache.ws.security.message.WSSecSignature;
 import org.apache.ws.security.message.WSSecTimestamp;
 import org.apache.ws.security.util.XMLUtils;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import it.profesia.carbon.apimgt.gateway.handlers.modi.FruizioneModiHandler;
 import it.profesia.carbon.apimgt.gateway.handlers.utils.SOAPUtil;
-import it.profesia.carbon.apimgt.subscription.dao.ModiPKMapping;
+import it.profesia.wemodi.ApiConfig;
+import it.profesia.wemodi.subscriptions.dao.ModiPKMapping;
 
+/**
+ * @deprecated Utilizzare la classe {@link it.profesia.wemodi.utils.WeModIContextHelper}
+ */
 public class CreateSOAPMessage {
 	
 	private static final Log log = LogFactory.getLog(CreateSOAPMessage.class);
 	
 	static String soapEnvNamespace = "";
-	
+
+    /**
+     * @deprecated utilizzare il metodo {@link it.profesia.wemodi.utils.WeModIContextHelper#createSoapPayload(ModiPKMapping, ApiConfig)}
+     * Crea il messaggio SOAP secondo i pattern ModI
+     * 
+     * @param msg Messaggio SOAP del client
+     * @param modiPKMapping Configurazione del certificato weModI
+     * @param apiConfig Configurazione dell'API weModI
+     * @return Messaggio XML da inviare all'ente erogatore
+     * @throws IOException
+     * @throws CertificateException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws KeyStoreException 
+     */
+    public static Document create(String msg, ModiPKMapping modiPKMapping, ApiConfig apiConfig) throws IOException, CertificateException, ParserConfigurationException, SAXException, KeyStoreException {
+    	PEMParser certPemParser = new PEMParser(new StringReader(modiPKMapping.getCertificate()));
+    	PemObject certPemObject = certPemParser.readPemObject();
+
+        X509Certificate x509certificate = getX509Certificate(certPemObject);
+        WSSecSignature sign = new WSSecSignature();
+        sign.setX509Certificate(x509certificate);
+
+        String keyStoreAlias = RandomStringUtils.randomAlphanumeric(10);
+		String keyStorePassword = RandomStringUtils.randomAlphanumeric(10);
+        sign.setUserInfo(keyStoreAlias, keyStorePassword);
+
+        String updatedMsg = CreateSOAPMessage.addElementToExistingXml(msg, modiPKMapping.getWsaddressingTo(), apiConfig.isIdAuthSoap02());
+
+        Document doc = SOAPUtil.toSOAPPart(updatedMsg);
+
+        Crypto crypto = SOAPUtil.getCryptoInstance();
+        KeyStore keystore = SOAPUtil.getKeyStore(keyStorePassword.toCharArray());
+
+        PEMParser pkPemParser = new PEMParser(new StringReader(modiPKMapping.getPrivkey()));
+        PemObject privateKey = pkPemParser.readPemObject();
+
+        PrivateKey signingKey = getPrivateKey(privateKey);
+        keystore.setKeyEntry(keyStoreAlias, signingKey, keyStorePassword.toCharArray(), new Certificate[]{x509certificate});
+        ((Merlin) crypto).setKeyStore(keystore);
+        crypto.loadCertificate(new ByteArrayInputStream(x509certificate.getEncoded()));  
+
+        WSSecHeader secHeader = new WSSecHeader();
+        secHeader.setMustUnderstand(false);
+        secHeader.insertSecurityHeader(doc);
+
+        switch (apiConfig.getKeyIdentifierType().toUpperCase()) {
+            case "BST_DIRECT_REFERENCE":
+                sign.setKeyIdentifierType(WSConstants.BST_DIRECT_REFERENCE);
+                break;
+            case "X509_KEY_IDENTIFIER":
+                sign.setKeyIdentifierType(WSConstants.X509_KEY_IDENTIFIER);
+                break;
+            case "ISSUER_SERIAL":
+                sign.setKeyIdentifierType(WSConstants.ISSUER_SERIAL);
+                break;
+            case "THUMBPRINT_IDENTIFIER":
+                sign.setKeyIdentifierType(WSConstants.THUMBPRINT_IDENTIFIER);
+                break;
+            case "SKI_KEY_IDENTIFIER":
+                sign.setKeyIdentifierType(WSConstants.SKI_KEY_IDENTIFIER);
+                break;
+            default:
+                log.warn(String.format( "Valore non supportato %s:%s.", apiConfig.KEY_IDENTIFIER_TYPE, apiConfig.getKeyIdentifierType()));
+        }
+
+        WSSecTimestamp timestamp = new WSSecTimestamp();
+        timestamp.setTimeToLive(300);
+        timestamp.build(doc, secHeader);
+
+        Vector<WSEncryptionPart> signParts = new Vector<WSEncryptionPart>();
+        signParts.add(new WSEncryptionPart("Timestamp", WSConstants.WSU_NS, ""));
+        if(apiConfig.isIdAuthSoap02())
+        	signParts.add(new WSEncryptionPart("MessageID", "http://www.w3.org/2005/08/addressing", "Element"));
+        signParts.add(new WSEncryptionPart("To", "http://www.w3.org/2005/08/addressing", "Element"));
+        if(apiConfig.isIntegritySoap01())
+        	signParts.add(new WSEncryptionPart("Body", soapEnvNamespace, "Element"));
+        sign.setParts(signParts);
+
+        Document signedDoc = sign.build(doc, crypto, secHeader);
+        if(log.isDebugEnabled()) {
+        	String outputMsg = XMLUtils.PrettyDocumentToString(signedDoc);
+            log.debug(outputMsg);
+        }
+        return signedDoc;
+    }
+
+    /**
+     * @deprecated utilizzare {@link #create(String, ModiPKMapping, ApiConfig)}
+     * Crea il messaggio SOAP secondo i pattern ModI
+     * 
+     * @param msg
+     * @param modiPKMapping
+     * @param modiSOAPProps
+     * @return
+     * @throws KeyStoreException
+     * @throws WSSecurityException
+     * @throws CertificateEncodingException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
 	public static Document create(String msg, ModiPKMapping modiPKMapping, Properties modiSOAPProps) throws KeyStoreException, WSSecurityException, CertificateEncodingException, ParserConfigurationException, SAXException, IOException 
 	{
 		//String outputMsg = "";
@@ -87,7 +198,7 @@ public class CreateSOAPMessage {
         
         X509Certificate x509certificate = SOAPUtil.getX509Certificate(certificate);
         Certificate[] certificateObj = new Certificate[]{x509certificate};
-        
+
         Crypto crypto = SOAPUtil.getCryptoInstance();
         KeyStore keystore = SOAPUtil.getKeyStore(keyStorePassword.toCharArray());
 		PrivateKey signingKey = SOAPUtil.getPrivateKey(privateKey);
@@ -217,5 +328,30 @@ public class CreateSOAPMessage {
 		 
     }
 	
+	private static X509Certificate getX509Certificate(PemObject pemObject) {
+		X509Certificate x509Certificate = null;
+		byte[] cert = pemObject.getContent();
+		try (ByteArrayInputStream serverCert = new ByteArrayInputStream(cert);) {
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			Certificate generatedCertificate = cf.generateCertificate(serverCert);
+			x509Certificate = (X509Certificate) generatedCertificate;
+		} catch (CertificateException | IOException e) {
+			log.error(e);
+		}
+		return x509Certificate;
+	}
+
+	private static PrivateKey getPrivateKey(PemObject pemObject) {
+		PrivateKey signingKey = null;
+		try {
+			byte[] encoded = pemObject.getContent();
+			PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(encoded);
+			KeyFactory kf = KeyFactory.getInstance("RSA");
+			signingKey = kf.generatePrivate(ks);
+		} catch (Exception e) {
+			log.error(e);
+		}
+		return signingKey;
+	}
 
 }

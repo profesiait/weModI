@@ -60,8 +60,8 @@ import com.google.gson.JsonObject;
 import io.swagger.v3.oas.models.OpenAPI;
 import it.profesia.carbon.apimgt.gateway.handlers.logging.ModiLogUtils;
 import it.profesia.carbon.apimgt.gateway.handlers.security.authenticator.ModiAuthenticator;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.CacheProviderModi;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.SubscriptionService;
+import it.profesia.carbon.apimgt.gateway.handlers.utils.CacheProviderWeModi;
+import it.profesia.wemodi.subscriptions.SubscriptionService;
 
 /**
  * Authentication handler for REST APIs exposed in the API gateway. This handler will
@@ -470,26 +470,26 @@ public class ModiAuthenticationHandler extends APIAuthenticationHandler implemen
         try {
 			JsonObject cacheConfigurations = new SubscriptionService().getCacheConfigurations();
 			enabledCache = cacheConfigurations.get("enabledCache").getAsBoolean();
-			CacheProviderModi.setEnabledCache(enabledCache);
+			CacheProviderWeModi.setEnabledCache(enabledCache);
 			expiryTimeInSecondsCache = Long.parseLong(cacheConfigurations.get("expiryTimeInSecondsCache").getAsString());
-			CacheProviderModi.setExpiryTimeInSecondsCache(expiryTimeInSecondsCache);
+			CacheProviderWeModi.setExpiryTimeInSecondsCache(expiryTimeInSecondsCache);
 		} catch (DataLoadingException | URISyntaxException e) {
 			log.error("No cache configurations found", e);
 		}
         
-        if(CacheProviderModi.isEnabledCache())
+        if(CacheProviderWeModi.isEnabledCache())
         {
-        	Duration expiryDuration = CacheProviderModi.getModiCache().getConfiguration().getExpiry(CacheConfiguration.ExpiryType.MODIFIED);
+        	Duration expiryDuration = CacheProviderWeModi.getWeModiCache().getConfiguration().getExpiry(CacheConfiguration.ExpiryType.MODIFIED);
             TimeUnit defaultTimeUnit = expiryDuration.getTimeUnit();
             long defaultExpiryTime = expiryDuration.getDurationAmount();
             long defaultExpiryTimeInSeconds = defaultTimeUnit.toSeconds(defaultExpiryTime);
             log.info("Default expiryTime in seconds: " + defaultExpiryTimeInSeconds);
-            log.info("Configured expiryTime: " + CacheProviderModi.getExpiryTimeInSecondsCache());
-            if(CacheProviderModi.getExpiryTimeInSecondsCache() != defaultExpiryTimeInSeconds)
+            log.info("Configured expiryTime: " + CacheProviderWeModi.getExpiryTimeInSecondsCache());
+            if(CacheProviderWeModi.getExpiryTimeInSecondsCache() != defaultExpiryTimeInSeconds)
             {
-            	CacheProviderModi.removeModiCache();
+            	CacheProviderWeModi.removeModiCache();
             	log.info("Modi cache removed");
-                CacheProviderModi.createModiCache();
+                CacheProviderWeModi.createWeModiCache();
                 log.info("Modi cache created");	
             }
         }

@@ -10,10 +10,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIManagerDatabaseException;
+import org.wso2.carbon.apimgt.api.model.Application;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
+import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 
 import it.profesia.carbon.apimgt.subscription.ModiDBUtil;
-import it.profesia.carbon.apimgt.subscription.dao.ModiPKMapping;
+import it.profesia.wemodi.subscriptions.dao.ModiPKMapping;
 
 public class ModiPrivateKeyImpl implements ModiPrivateKey {
 	private static final Log log = LogFactory.getLog(ModiPrivateKeyImpl.class);
@@ -54,7 +56,7 @@ public class ModiPrivateKeyImpl implements ModiPrivateKey {
 	}
 
 	@Override
-	public ModiPKMapping getPrivateKey(String appUUID) {
+	public ModiPKMapping getPrivateKey(String appUUID) throws APIManagementException {
 		ModiPKMapping privateKey = new ModiPKMapping();
 
 		String GET_PK_APP_MAPPING_SQL =
@@ -96,36 +98,22 @@ public class ModiPrivateKeyImpl implements ModiPrivateKey {
             }
 
         } catch (SQLException e) {
-            log.error("Error in loading cert app mapping for the application : " + appUUID, e);
+			String msg = String.format("Impossibile recuperare la chiave privata ModI in base al Application UUID %s.", appUUID);
+            log.error(String.format("%s %s", msg, e.getLocalizedMessage()));
+			throw new APIManagementException(msg, e);
         }
 		return privateKey;
 	}
 
 	@Override
-	public ModiPKMapping getPrivateKeyByConsumerKey(String consumerKey) {
+	public ModiPKMapping getPrivateKeyByConsumerKey(String consumerKey) throws APIManagementException {
 		ModiPKMapping privateKey = new ModiPKMapping();
+        log.debug("Ricerca della chiave privata ModI in base al Client ID: " + consumerKey);
 
-		String GET_APPLICATION_ID = "SELECT AA.UUID AS APPUUID "
-				+ "FROM AM_APPLICATION_KEY_MAPPING AKM, "
-				+ "AM_APPLICATION AA "
-				+ "WHERE "
-				+ "AKM.APPLICATION_ID = AA.APPLICATION_ID AND "
-				+ "AKM.CONSUMER_KEY = ?";
-        try (Connection conn = APIMgtDBUtil.getConnection();
-                PreparedStatement ps =
-                        conn.prepareStatement(GET_APPLICATION_ID)) {
-        	ps.setString(1, consumerKey);
-            try (ResultSet resultSet = ps.executeQuery()) {
-            	if (resultSet != null && privateKey != null) {
-            		if (resultSet.next()) {
-            			String appUUID = resultSet.getString("APPUUID");
-            			privateKey = getPrivateKey(appUUID);
-            		}
-            	}
-            }
-        } catch (SQLException e) {
-            log.error("Error in loading cert app mapping for the application : " + consumerKey, e);
-        }
+        Application application = APIUtil.getApplicationByClientId(consumerKey);
+        String applicationUUID = application.getUUID();
+        log.trace("Ottenuto lo UUID dell'application: " + applicationUUID);
+        privateKey = getPrivateKey(applicationUUID);
 
 		return privateKey;
 	}

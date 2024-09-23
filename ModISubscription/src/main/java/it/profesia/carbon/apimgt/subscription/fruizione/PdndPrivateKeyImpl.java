@@ -10,30 +10,39 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIManagerDatabaseException;
-import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
+import org.wso2.carbon.apimgt.api.model.Application;
+import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 
 import it.profesia.carbon.apimgt.subscription.ModiDBUtil;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
 
 public class PdndPrivateKeyImpl implements PdndPrivateKey {
 
 	private static final Log log = LogFactory.getLog(PdndPrivateKeyImpl.class);
 
 	@Override
-	public PdndPKMapping insertPrivateKey(String applicationUuid, String uri, String kid, String alg, String typ, String iss,
+	public PdndPKMapping insertPrivateKey(String applicationUuid, String keyType, String uri, String kid, String alg, String typ, String iss,
 			String sub, String aud, String purposeId, String clientId, String scope, String privkey, Boolean enabled) throws APIManagementException, APIManagerDatabaseException{
 
 		PdndPKMapping pdndPK = new PdndPKMapping();
 		try {
 			ModiDBUtil.initialize();
 
-			String INSERT_PDND_FRUIZIONE_SUB_SQL = "INSERT INTO PDND_FRUIZIONE_SUBSCRIPTION (APPLICATION_UUID,URI,KID,ALG,TYP,"
+			String INSERT_PDND_FRUIZIONE_SUB_SQL = "INSERT INTO PDND_FRUIZIONE_SUBSCRIPTION (APPLICATION_UUID,"
+					// TODO: aggiungere il campo KEY_TYPE alla tabella
+					// + "KEY_TYPE,"
+			        + "URI,KID,ALG,TYP,"
 					+ "ISS,SUB,AUD,PURPOSE_ID,CLIENTID,SCOPE,PRIVATE_KEY_PEM,ENABLED)"
-					+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+					+ " VALUES (?,"
+					// TODO: aggiungere il campo KEY_TYPE alla tabella
+					// + "?,"
+					+ "?,?,?,?,?,?,?,?,?,?,?,?)";
 
 			try (Connection conn = ModiDBUtil.getConnection();
 					PreparedStatement ps = conn.prepareStatement(INSERT_PDND_FRUIZIONE_SUB_SQL)) {
 				ps.setString(1, applicationUuid);
+				// TODO: aggiungere il campo KEY_TYPE alla tabella, allineare gli indeci dei campi successiviv
+				// ps.setString(2, StringUtils.defaultIfBlank(keyType, null));
 				ps.setString(2, StringUtils.defaultIfBlank(uri, null));
 				ps.setString(3, StringUtils.defaultIfBlank(kid, null));
 				ps.setString(4, StringUtils.defaultIfBlank(alg, null));
@@ -48,20 +57,19 @@ public class PdndPrivateKeyImpl implements PdndPrivateKey {
 				ps.setBoolean(13, enabled);
 
 				ps.executeUpdate();
-			} catch (SQLException e) {
-				log.error("Error in inserting pdnd fruizione sub : ", e);
-				throw new APIManagementException("Error in inserting pdnd fruizione sub", e);
 			}
-		} catch (APIManagerDatabaseException e) {
-			log.error("Error initializing data source : ", e);
-			throw new APIManagerDatabaseException("Error initializing data source", e);
+		} catch (SQLException | APIManagerDatabaseException e) {
+            String msg = "Error in fase di inserimento della chiave privata weModI.";
+			log.error(msg, e);
+			throw new APIManagementException(msg, e);
 		}
 		return pdndPK;
 	}
 
 	@Override
-	public PdndPKMapping getPrivateKey(String appUUID) {
+	public PdndPKMapping getPrivateKey(String appUUID, String keyType) throws APIManagementException {
 		PdndPKMapping privateKey = new PdndPKMapping();
+		log.debug("Ricerca della chiave privata PDND in base ad Application UUID: " + appUUID);
 
     	String GET_PK_APP_MAPPING_SQL =
     			"SELECT " +
@@ -80,14 +88,18 @@ public class PdndPrivateKeyImpl implements PdndPrivateKey {
                         "PDND_FRUIZIONE_SUBSCRIPTION " +
                         "WHERE " +
                         "APPLICATION_UUID = ? " +
+						// TODO: aggiungere il campo nella tabella per gestire le configurazioni degli endpoint di SANDBOX/PRODUCTION
+						// "AND KEY_TYPE = ? " +
                         "AND ENABLED = '1'";
-    	log.info("Query getPrivateKey: " + GET_PK_APP_MAPPING_SQL);
+    	log.trace("Query getPrivateKey: " + GET_PK_APP_MAPPING_SQL);
         try (Connection conn = ModiDBUtil.getConnection();
                 PreparedStatement ps =
                         conn.prepareStatement(GET_PK_APP_MAPPING_SQL)) {
 
-        	log.debug("Query getPrivateKey: " + GET_PK_APP_MAPPING_SQL + "\n  parameter: " + appUUID);
+        	log.trace("Query getPrivateKey: " + GET_PK_APP_MAPPING_SQL + "\n  parameter: " + appUUID);
             ps.setString(1, appUUID);
+            // TODO: aggiungere il campo nella tabella per gestire le configurazioni degli endpoint di SANDBOX/PRODUCTION
+            // ps.setString(2, keyType);
 
             try (ResultSet resultSet = ps.executeQuery()) {
             	if (resultSet != null && privateKey != null) {
@@ -112,45 +124,26 @@ public class PdndPrivateKeyImpl implements PdndPrivateKey {
             	}
             }
         } catch (SQLException e) {
-            log.error("Error in loading cert app mapping for the application : " + appUUID, e);
+			String msg = String.format("Impossibile recuperare la chiave privata PDND in base al Application UUID %s.", appUUID);
+            log.error(String.format("%s %s", msg, e.getLocalizedMessage()));
+			throw new APIManagementException(msg, e);
         }
 		return privateKey;
 	}
 
 	@Override
-	public PdndPKMapping getPrivateKeyByConsumerKey(String consumerKey) {
+	public PdndPKMapping getPrivateKeyByConsumerKey(String consumerKey) throws APIManagementException {
 		PdndPKMapping privateKey = new PdndPKMapping();
+		log.debug("Ricerca della chiave privata PDND in base al Client ID: " + consumerKey);
 
-		String GET_APPLICATION_ID = "SELECT APP.UUID AS APPUUID "
-				+ "FROM AM_APPLICATION_KEY_MAPPING AKM, "
-				+ "AM_APPLICATION APP "
-				+ "WHERE "
-				+ "AKM.APPLICATION_ID = APP.APPLICATION_ID AND "
-				+ "AKM.CONSUMER_KEY = ?";
-		log.info("query PDND: " + GET_APPLICATION_ID);
-        try (Connection conn = APIMgtDBUtil.getConnection();
-                PreparedStatement ps =
-                        conn.prepareStatement(GET_APPLICATION_ID)) {
-        	ps.setString(1, consumerKey);
-        	log.debug("Query PDND: " + GET_APPLICATION_ID + "\n  Parameter: " + consumerKey);
-            try (ResultSet resultSet = ps.executeQuery()) {
-            	log.info("Result PDND: " + resultSet);
-            	if (resultSet != null && privateKey != null) {
-            		if (resultSet.next()) {
-            			String appUUID = resultSet.getString("APPUUID");
-            			//setApplicationUUID(appUUID);
-            			log.debug("PDND App UUID: " + appUUID);
-            			privateKey = getPrivateKey(appUUID);
-            		}
-            	}
-            }
-        } catch (SQLException e) {
-            log.error("Error in loading cert app mapping for the application : " + consumerKey, e);
-        }
+		Application application = APIUtil.getApplicationByClientId(consumerKey);
+		String applicationUUID = application.getUUID();
+		log.trace("Ottenuto lo UUID dell'application: " + applicationUUID);
+        privateKey = getPrivateKey(applicationUUID, application.getKeyType());
 
 		return privateKey;
 	}
-	
+
 	@Override
 	public int updatePrivateKey(String applicationUuid) throws APIManagementException, APIManagerDatabaseException{
 

@@ -1,0 +1,7 @@
+.project
+.sonatype-config
+.settings/
+ModIComponents/.classpath
+ModIComponents/.sonatype
+PDNDProviderJWT/.classpath
+PDNDProviderJWT/.sonatype

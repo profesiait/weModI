@@ -1,0 +1,6 @@
+## 2.1.0
+* Mediatore WeModIMediator per la fase di fruizione API REST (sostituisce l'handler per la generazione dei Voucher PDND)
+
+## 2.3.0
+* Fruizione SOAP tramite il mediatore WeModIMediator (sostituisce l'handler per la generazione dei Voucher PDND)
+* Compatibilità con la versione 4.3 di WSO2 API Manager

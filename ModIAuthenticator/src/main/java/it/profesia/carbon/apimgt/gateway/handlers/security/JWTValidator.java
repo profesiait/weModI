@@ -91,9 +91,9 @@ import it.profesia.carbon.apimgt.gateway.handlers.security.authenticator.ModiAut
 import it.profesia.carbon.apimgt.gateway.handlers.utils.APIUtilCustom;
 import it.profesia.carbon.apimgt.gateway.handlers.logging.ModiLogUtils;
 import it.profesia.carbon.apimgt.gateway.handlers.security.authenticator.ModiAuthenticator;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.CacheProviderModi;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.SubscriptionService;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
+import it.profesia.carbon.apimgt.gateway.handlers.utils.CacheProviderWeModi;
+import it.profesia.wemodi.subscriptions.SubscriptionService;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 
@@ -753,7 +753,7 @@ public class JWTValidator {
 		return DateUtils.isAfter(first, second, timestampSkew);
 		}
     
-    private static String callExternalUrl(String urlString, String pdndAccessToken) {
+    public static String callExternalUrl(String urlString, String pdndAccessToken) {
 		String urlOutput = "";
 		try {
 			URI uri = new URL(urlString).toURI();
@@ -800,7 +800,7 @@ public class JWTValidator {
 	}
     
     
-    private static PublicKey retrievePubKeyFromJWKS(String jwksInfo, String kid) 
+    public static PublicKey retrievePubKeyFromJWKS(String jwksInfo, String kid) 
     {
 	 	PublicKey rsaPublicKey = null;
 	 	try
@@ -847,7 +847,7 @@ public class JWTValidator {
         
     }
     
-    private static String providePdnd(PdndPKMapping pdndJwt) throws InvalidKeySpecException, NoSuchAlgorithmException, JOSEException, MalformedURLException, APISecurityException {
+    public static String providePdnd(PdndPKMapping pdndJwt) throws InvalidKeySpecException, NoSuchAlgorithmException, JOSEException, MalformedURLException, APISecurityException {
 		String jwt = "";
 		if (pdndJwt.isEnabled() != null && pdndJwt.isEnabled()) {
 			log.info(ModiLogUtils.PDND_TOKEN_REQUEST_START);
@@ -983,12 +983,12 @@ public class JWTValidator {
     
     private static Cache getModiCache() {
 
-        return CacheProviderModi.getModiCache();
+        return CacheProviderWeModi.getWeModiCache();
     }
     
     private static boolean getModiCacheEnable() {
 
-        return CacheProviderModi.isEnabledCache();
+        return CacheProviderWeModi.isEnabledCache();
     }
 
 }

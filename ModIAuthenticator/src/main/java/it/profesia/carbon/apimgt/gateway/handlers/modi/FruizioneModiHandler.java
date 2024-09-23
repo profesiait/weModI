@@ -88,9 +88,9 @@ import it.profesia.carbon.apimgt.gateway.handlers.logging.ModiLogUtils;
 import it.profesia.carbon.apimgt.gateway.handlers.modi.soap.CreateSOAPMessage;
 import it.profesia.carbon.apimgt.gateway.handlers.modi.soap.CustomSOAPBuilder;
 import it.profesia.carbon.apimgt.gateway.handlers.utils.SOAPUtil;
-import it.profesia.carbon.apimgt.subscription.dao.ModiPKMapping;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
-import it.profesia.carbon.apimgt.subscription.utils.CertificateMetadata;
+import it.profesia.wemodi.subscriptions.dao.ModiPKMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.utils.CertificateMetadata;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -834,7 +834,7 @@ public class FruizioneModiHandler extends AbstractHandler {
             {
             	byteArrayOutputStream.flush();
                 String originalPayload = byteArrayOutputStream.toString();
-                log.info("originalPayload: "+originalPayload);
+                log.debug("originalPayload: "+originalPayload);
                 in =  new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
                 RelayUtils.buildMessage(axis2MC, false, in);
                 digest = convertToDigest(originalPayload);
@@ -864,14 +864,14 @@ public class FruizioneModiHandler extends AbstractHandler {
                 String encoding = null;
                 IOUtils.copy(jsonPayloadStream, writer, encoding);
                 String jsonPayload = writer.toString();
-                log.info("jsonPayload: " + jsonPayload);
+                log.debug("jsonPayload: " + jsonPayload);
                 digest = convertToDigest(jsonPayload);
             }
     	}
     	else
     	{
     		genericPayload = axis2MC.getEnvelope().getBody().getFirstElement().toString();
-    		log.info("genericPayload: " + genericPayload);
+    		log.debug("genericPayload: " + genericPayload);
     		digest = convertToDigest(genericPayload);
     	}
     	return digest;

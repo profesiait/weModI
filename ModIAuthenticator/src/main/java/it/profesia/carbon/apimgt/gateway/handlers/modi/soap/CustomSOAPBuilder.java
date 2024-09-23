@@ -23,10 +23,12 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+// TODO: valutare l'utilizzo della classe org.apache.axis2.builder.SOAPBuilder
 public class CustomSOAPBuilder implements Builder{
 	
 	private static final Log log = LogFactory.getLog(CustomSOAPBuilder.class);
-	
+
+    @Override
     public OMElement processDocument(InputStream inputStream, String contentType, MessageContext messageContext) throws AxisFault {
     	SOAPEnvelope soapEnvelope = null;
     	SOAPFactory soapFactory = null;

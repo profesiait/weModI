@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,9 +27,9 @@ import com.nimbusds.jwt.SignedJWT;
 
 import it.profesia.carbon.apimgt.gateway.handlers.logging.ModiLogUtils;
 import it.profesia.carbon.apimgt.gateway.handlers.utils.SOAPUtil;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.SubscriptionService;
-import it.profesia.carbon.apimgt.subscription.dao.ModiPKMapping;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.SubscriptionService;
+import it.profesia.wemodi.subscriptions.dao.ModiPKMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
 import net.minidev.json.JSONObject;
 
 public class InitializeModiHandler extends AbstractHandler {
@@ -99,8 +100,12 @@ public class InitializeModiHandler extends AbstractHandler {
 				log.trace("weModI context: " + axis2MC);
 	
 				String authorization = (String)headers.get("Authorization");
+                if (StringUtils.isBlank(authorization)) {
+                    log.error("Non è stato fornito un header Authroization valido.");
+                    return false;
+                }
 				SignedJWT jwt = SignedJWT.parse(authorization.replace("Bearer ", ""));
-				appUUID = jwt.getPayload().toJSONObject().getAsString("azp");
+				appUUID = jwt.getPayload().toJSONObject().get("azp").toString();
 				log.debug("weModI subscription: " + appUUID);
 				
 				apiContext = (String) messageContext.getProperty(RESTConstants.REST_API_CONTEXT);

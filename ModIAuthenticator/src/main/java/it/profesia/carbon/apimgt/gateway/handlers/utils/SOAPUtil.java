@@ -70,6 +70,9 @@ import org.w3c.dom.Element;
 import org.apache.commons.lang3.tuple.Pair;
 import org.xml.sax.SAXException;
 
+/**
+ * @deprecated Utilizzare la classe {@link it.profesia.wemodi.utils.WeModIContextHelper}
+ */
 public class SOAPUtil {
 
 	private static final Log log = LogFactory.getLog(SOAPUtil.class);
@@ -107,8 +110,10 @@ public class SOAPUtil {
 	        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 	        transformer.transform(source, result);
 	    }
-  
-    
+      
+    /**
+     * @deprecated utilizzare {@link org.bouncycastle.openssl.PEMReader}
+     */
     public static X509Certificate getX509Certificate(String certificate)
     {
     	X509Certificate x509Certificate = null;
@@ -122,7 +127,10 @@ public class SOAPUtil {
         }
         return x509Certificate;
     }
-    
+
+    /**
+     * @deprecated utilizzare {@link org.bouncycastle.openssl.PEMReader}
+     */
     public static PrivateKey getPrivateKey(String privateKey)
     {
     	PrivateKey signingKey = null;
@@ -190,7 +198,7 @@ public class SOAPUtil {
             IOUtils.copy(in, byteArrayOutputStream);
             byteArrayOutputStream.flush();
             originalPayload = byteArrayOutputStream.toString();
-            log.info("originalPayload: "+originalPayload);
+            log.debug("originalPayload: "+originalPayload);
             in =  new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
             RelayUtils.buildMessage(axis2MC, false, in);
     		}

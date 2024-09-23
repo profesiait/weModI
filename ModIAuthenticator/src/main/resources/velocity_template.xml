@@ -95,21 +95,17 @@
 #end
 </class>
 ## custom weModI Mediator
-
-
-#else
-#if($endpointsecurity.type == "weModI")
+		#else
+        #if($endpointsecurity.type == "weModI")
 <class name="it.profesia.wemodi.mediator.WeModIMediator">
-        <property name="customParameters" value="$util.escapeXml($endpointsecurity.customParameters)" type="STRING"/>
+<property name="customParameters" value="$util.escapeXml($endpointsecurity.customParameters)" type="STRING"/>
 </class>
-#end
-
-
 ## custom weModI Mediator
         #end
         #end
         #end
         #end
+		#end
 <send>
 
 ## If endpoint is http
@@ -354,17 +350,10 @@ $out_sequences.get("$resource.getUriTemplate()").get($uri)
 <handler class="org.wso2.carbon.apimgt.gateway.handlers.security.CORSRequestHandler">
     <property name="inline" value="INLINE"/>
 </handler>
-<handler class="it.profesia.carbon.apimgt.gateway.handlers.modi.InitializeModiHandler">
-    <property name="pdnd_fruizione" value="$apiObj.additionalProperties.get('pdnd_fruizione')"></property>
-    <property name="modi_fruizione" value="$apiObj.additionalProperties.get('modi_fruizione')"></property>
-	<property name="audit_rest_01_pdnd" value="$apiObj.additionalProperties.get('audit_rest_01_pdnd')"/>
-	<property name="audit_rest_01_modi" value="$apiObj.additionalProperties.get('audit_rest_01_modi')"/>
-	<property name="audit_rest_02" value="$apiObj.additionalProperties.get('audit_rest_02')"></property>
-</handler>
             #end
 
             #foreach( $handler in $handlers )
-                #if(($handler.className == "org.wso2.carbon.apimgt.gateway.handlers.security.APIAuthenticationHandler") && ($apiObj.additionalProperties.get('modi_auth') == "true"))
+                #if(($handler.className == "org.wso2.carbon.apimgt.gateway.handlers.security.APIAuthenticationHandler") && ($apiObj.additionalProperties.get('modi_auth') == "true") && ($endpointsecurity.type != "weModI"))
                     <handler class="it.profesia.carbon.apimgt.gateway.handlers.security.ModiAuthenticationHandler">
                         <property name="modi_auth" value="$apiObj.additionalProperties.get('modi_auth')"/>
                         <property name="pdnd_auth" value="$apiObj.additionalProperties.get('pdnd_auth')"/>
@@ -380,7 +369,7 @@ $out_sequences.get("$resource.getUriTemplate()").get($uri)
                         <property name="jwt_header_name" value="$apiObj.additionalProperties.get('jwt_header_name')"/>
                         <property name="api_aud" value="$apiObj.additionalProperties.get('api_aud')"/>
                     </handler>
-                #elseif (($handler.className == "org.wso2.carbon.apimgt.gateway.handlers.security.APIAuthenticationHandler") && ($apiObj.additionalProperties.get('pdnd_auth') == "true"))
+                #elseif (($handler.className == "org.wso2.carbon.apimgt.gateway.handlers.security.APIAuthenticationHandler") && ($apiObj.additionalProperties.get('pdnd_auth') == "true") && ($endpointsecurity.type != "weModI"))
                     <handler class="it.profesia.carbon.apimgt.gateway.handlers.security.ModiAuthenticationHandler">
                         <property name="modi_auth" value="$apiObj.additionalProperties.get('modi_auth')"/>
                         <property name="pdnd_auth" value="$apiObj.additionalProperties.get('pdnd_auth')"/>
@@ -411,26 +400,6 @@ $out_sequences.get("$resource.getUriTemplate()").get($uri)
                 #if($enableSchemaValidation)
 <handler class="org.wso2.carbon.apimgt.gateway.handlers.security.SchemaValidator"/>
                 #end
-
-             #if(($apiObj.additionalProperties.get('modi_fruizione') == "true") || ($apiObj.additionalProperties.get('pdnd_fruizione') == "true"))
-<handler class="it.profesia.carbon.apimgt.gateway.handlers.modi.FruizioneModiHandler">
-    <property name="pdnd_fruizione" value="$apiObj.additionalProperties.get('pdnd_fruizione')"/>
-    <property name="modi_fruizione" value="$apiObj.additionalProperties.get('modi_fruizione')"/>
-    <property name="id_auth_rest_01" value="$apiObj.additionalProperties.get('id_auth_rest_01')"/>
-    <property name="id_auth_rest_02" value="$apiObj.additionalProperties.get('id_auth_rest_02')"/>
-    <property name="integrity_rest_01" value="$apiObj.additionalProperties.get('integrity_rest_01')"/>
-	<property name="integrity_rest_02" value="$apiObj.additionalProperties.get('integrity_rest_02')"/>
-    <property name="id_auth_soap_01" value="$apiObj.additionalProperties.get('id_auth_soap_01')"/>
-    <property name="id_auth_soap_02" value="$apiObj.additionalProperties.get('id_auth_soap_02')"/>
-    <property name="integrity_soap_01" value="$apiObj.additionalProperties.get('integrity_soap_01')"/>
-	<property name="audit_rest_01_pdnd" value="$apiObj.additionalProperties.get('audit_rest_01_pdnd')"/>
-	<property name="audit_rest_01_modi" value="$apiObj.additionalProperties.get('audit_rest_01_modi')"/>
-	<property name="audit_rest_02" value="$apiObj.additionalProperties.get('audit_rest_02')"/>
-    <property name="key_identifier_type" value="$apiObj.additionalProperties.get('key_identifier_type')"/>
-    <property name="reference_certificate_type" value="$apiObj.additionalProperties.get('reference_certificate_type')"/>
-	<property name="jwt_header_name" value="$apiObj.additionalProperties.get('jwt_header_name')"/>
-</handler>
-             #end
 
 </handlers>
             #end

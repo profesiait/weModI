@@ -1,11 +1,10 @@
 openapi: 3.0.1
 info:
-  title: Configurazione weModI versione v4
-  description: API per la configurazione di Fruizioni ed Erogazioni del modulo weModI
-    e caricamento dei relativi certificati di firma
+  title: Sottoscrizioni weModI versione v4
+  description: API per la sottoscrizione di Fruizioni ed Erogazioni del modulo weModI
   version: v4
 servers:
-- url: /api/am/modi/v4
+- url: /api/am/wemodi/subscription/v4
   description: Base path URL
 paths:
   /subscriptionservice/aliasWithThumbprint:

@@ -1,54 +1,31 @@
-# Integrazione dei pattern ModI all'interno di WSO2 API Manager
+# Librerie weModI per la produzione e validazione dei JWT ModI e PDND
 
-Richiede WSO2 API Manager 4.1
 
-```sh
-mv clean package
+* [Prerequisiti](#prerequisiti)
+* [Installazione](#installazione)
+* [Configurazione istanza WSO2](#configurazione-istanza-wso2)
+  * [Proxy](#proxy-opzionale)
+  * [ModI - PDND application attributes](#modi---pdnd-application-attributes)
+  * [Logger weModI](#logger-wemodi)
+* [Generazione JWKS per test PDND](#generazione-jwks-per-test-pdnd)
+* [ModI - PDND API properties](#modi---pdnd-api-properties)
+* [Mediatore di autenticazione in fruizione](#mediatore-di-autenticazione-in-fruizione)
+* [Handler di autorizzazione in erogazione](#handler-di-autorizzazione-in-erogazione)
 
-cp target/ModiAuthenticator-1.0.0-SNAPSHOT.jar <WSO2AM-4.1.0_HOME>/repository/components/lib/
-```
+## Prerequisiti
+Richiede WSO2 API Manager 4.1 o superiore<br>
 
-## Configurazione del DB weModI
-Aggiungere la seguente configurazione nel deployment.toml
+## Installazione
+Per le configurazioni API Manager distribuito su diversi [profili](https://apim.docs.wso2.com/en/latest/install-and-setup/setup/distributed-deployment/understanding-the-distributed-deployment-of-wso2-api-m/) deploiare questa libreria nel profilo Gateway di WSO2 API Manager. 
 
-```
-[datasource.WSO2MODI_DB]
-type = "mysql"
-id = "WSO2MODI_DB"
-url = "jdbc:mysql://localhost:3306/WSO2MODI_DB?useSSL=false"
-username = "apimadmin"
-password = "apimadmin"
-driver="com.mysql.cj.jdbc.Driver"
-pool_options.maxActive = 50
-pool_options.maxWait = 30000
-```
+Compilare il [Multi-Project maven weModI](../README.md#compilazione), deploiare il jar nella directory lib ```cp target/it.profesia.wemodi.authenticator-<version>.jar <WSO2AM_HOME>/repository/components/lib/```
 
-Assicurarsi che a runtime il master-datasources.xml venga correttamente aggiornato:
+## Configurazione istanza WSO2
+Una volta installata la libreria occorre configurare l'istanza WSO2 API Manager (profilo control-plane)
 
-```
-<datasource>
-            <name>WSO2MODI_DB</name>
-            <description>The datasource used for Modi database</description>
-            <jndiConfig>
-                <name>jdbc/WSO2MODI_DB</name>
-            </jndiConfig>
-            <definition type="RDBMS">
-                <configuration>
-                    <url>jdbc:mysql://localhost:3306/WSO2MODI_DB?useSSL=false</url>
-                    <username>apimadmin</username>
-                    <password>apimadmin</password>
-                    <driverClassName>com.mysql.cj.jdbc.Driver</driverClassName>
-                    <validationQuery>SELECT 1</validationQuery>
-                    <maxWait>30000</maxWait>
-                    <maxActive>50</maxActive>
-            </configuration>
-            </definition>
-        </datasource>
-```
+### Proxy (opzionale)
 
-## Configurazione del proxy (opzionale)
-
-Aggiungere le seguenti configurazioni nel file `deployment.toml`:
+Aggiungere le seguenti configurazioni nel file `deployment.toml` dei profili Control Plane e Gateway:
 
 > **Proxy configuration for the PassThrough transport**
 
@@ -94,39 +71,49 @@ nonProxyHosts = "wso2am.*service|.*\\.logistics\\.corp|localhost"
 protocol = "http"
 ```
 
-## Logger ModI
-Aggiungere le configurazioni per MODI_LOGFILE come specificato nel log4j2.properties sotto src/main/resources
+### ModI - PDND application attributes
+Aggiungere la configurazione nel file ```deployment.toml```:
+```
+[[apim.devportal.application_attributes]]
+required=false
+hidden=false
+name="wemodi_connessione"
+description="Valori ammessi: fruizione, erogazione"
+```
+
+### Logger weModI
+Aggiungere le configurazioni per WEMODI_LOGFILE come specificato nel log4j2.properties sotto src/main/resources
 
 Configurazione del file di log di destinazione:
 ```
-# MODI_LOGFILE
-appender.MODI_LOGFILE.type = RollingFile
-appender.MODI_LOGFILE.name = MODI_LOGFILE
-appender.MODI_LOGFILE.fileName = ${sys:carbon.home}/repository/logs/modi.log
-appender.MODI_LOGFILE.filePattern = ${sys:carbon.home}/repository/logs/modi-%d{MM-dd-yyyy}-%i.log.gz
-appender.MODI_LOGFILE.layout.type = PatternLayout
-appender.MODI_LOGFILE.layout.pattern = TID: [%tenantId] [%appName] [%d] [%X{correlationID} %X{apiName} %X{apiVersion} %X{apiContext} %X{resourceName}] %5p {%c} - %m%ex%n
-appender.MODI_LOGFILE.policies.type = Policies
-appender.MODI_LOGFILE.policies.time.type = TimeBasedTriggeringPolicy
-appender.MODI_LOGFILE.policies.time.interval = 1
-appender.MODI_LOGFILE.policies.time.modulate = true
-appender.MODI_LOGFILE.policies.size.type = SizeBasedTriggeringPolicy
-appender.MODI_LOGFILE.policies.size.size = 100MB
-appender.MODI_LOGFILE.strategy.type = DefaultRolloverStrategy
-appender.MODI_LOGFILE.strategy.max = nomax
-appender.MODI_LOGFILE.filter.threshold.type = ThresholdFilter
-appender.MODI_LOGFILE.filter.threshold.level = DEBUG
+# WEMODI_LOGFILE
+appender.WEMODI_LOGFILE.type = RollingFile
+appender.WEMODI_LOGFILE.name = WEMODI_LOGFILE
+appender.WEMODI_LOGFILE.fileName = ${sys:carbon.home}/repository/logs/weModI.log
+appender.WEMODI_LOGFILE.filePattern = ${sys:carbon.home}/repository/logs/weModI-%d{MM-dd-yyyy}-%i.log.gz
+appender.WEMODI_LOGFILE.layout.type = PatternLayout
+appender.WEMODI_LOGFILE.layout.pattern = TID: [%tenantId] [%appName] [%d] [%X{correlationID} %X{apiName} %X{apiVersion} %X{apiContext} %X{resourceName}] %5p {%c} - %m%ex%n
+appender.WEMODI_LOGFILE.policies.type = Policies
+appender.WEMODI_LOGFILE.policies.time.type = TimeBasedTriggeringPolicy
+appender.WEMODI_LOGFILE.policies.time.interval = 1
+appender.WEMODI_LOGFILE.policies.time.modulate = true
+appender.WEMODI_LOGFILE.policies.size.type = SizeBasedTriggeringPolicy
+appender.WEMODI_LOGFILE.policies.size.size = 100MB
+appender.WEMODI_LOGFILE.strategy.type = DefaultRolloverStrategy
+appender.WEMODI_LOGFILE.strategy.max = nomax
+appender.WEMODI_LOGFILE.filter.threshold.type = ThresholdFilter
+appender.WEMODI_LOGFILE.filter.threshold.level = TRACE
 ```
-Le variabili `correlationID`, `apiName`, `apiVersion`, `apiContext` e `resourceName` vengono impostate all'interno degli handler ModI, inserire `MODI_LOGGER` nell'elenco degli `appenders`.
+Le variabili `correlationID`, `apiName`, `apiVersion`, `apiContext` e `resourceName` vengono impostate all'interno degli handler ModI, inserire `WEMODI_LOGGER` nell'elenco degli `appenders`.
 
-Configurare il logger `MODI`:
+Configurare il logger `WEMODI`:
 
 ```
-logger.MODI.name = it.profesia
-logger.MODI.level = INFO
-logger.MODI.appenderRef.CARBON_LOGFILE.ref = MODI_LOGFILE
+logger.WEMODI.name = it.profesia
+logger.WEMODI.level = DEBUG
+logger.WEMODI.appenderRef.WEMODI_LOGFILE.ref=WEMODI_LOGFILE
 ```
-Il package `it.profesia` contiene tutte le classi ModI, inserire il logger `MODI` nell'elenco dei `loggers`.
+Il package `it.profesia` contiene tutte le classi ModI, inserire il logger `WEMODI` nell'elenco dei `loggers`.
 
 ## Generazione JWKS per test PDND
 Per la generazione del JWKS, sarà necessaria la chiave pubblica, da estrarre dal certificato con il seguente comando:
@@ -172,20 +159,11 @@ Il Key ID dovrà corrispondere al kid presente nel PDND JWT.
 | audit_rest_02  | true, false  | Richiede pdnd_auth settata a true |
 | jwt_header_name  | Dinamico  | il cliente setta il nome dell'header |
 
-## ModI - PDND application attributes
-Add the following configuration in the deployment.toml:
-```
-[[apim.devportal.application_attributes]]
-required=false
-hidden=false
-name="wemodi_connessione"
-description="Possible values are fruizione/erogazione"
-```
 
-## Mediatore di autenticazione in fruizione [in fase di sviluppo]
+## Mediatore di autenticazione in fruizione
 In fase di fruizione viene richiesta la generazione di appositi JWT generati direttamente dall'ente Fruitore (pattern ModI) o rilasciati dal server PDND (Voucher PagoPA).
-La classe `WeModIMediator` implementa le logiche di generazione dei diversi JWT a seconda dei pattern definiti a livello di API (API properties).
-Per poter integrare questo mediatore occorre modificare il template velocity aggiungendo
+La classe [`WeModIMediator`](./src/main/java/it/profesia/wemodi/mediator/WeModIMediator.java) implementa le logiche di generazione dei diversi JWT a seconda dei pattern definiti a livello di API (API properties).
+Per poter integrare questo mediatore occorre modificare il [template velocity](./src/main/resources/velocity_template.xml) aggiungendo
 ```
  ## custom weModI Mediator
  
@@ -201,36 +179,80 @@ Per poter integrare questo mediatore occorre modificare il template velocity agg
  ## custom weModI Mediator
 ```
 
-La creazione dell'API deve avvenire inviando le informazioni relative al tipo di sicurezza richiesta per l'endpoint
+La creazione dell'API deve avvenire inviando le informazioni relative al tipo di sicurezza richiesta per l'endpoint usando le [API Reference di WSO2](https://apim.docs.wso2.com/en/latest/reference/product-apis/publisher-apis/publisher-v4/publisher-v4/#tag/APIs/operation/updateAPI)
 ```
-      "endpoint_security": {
-            "sandbox": {
-                "type": "weModI",
-                "enabled": true,
-                "customParameters": {
-                    "isPDND": true,
-                    "siModI": false
-                   },
-                "additionalProperties": {
-                    "PDND": {
-                        "tokenUrl": "HTTPS://my.url"
-                        },
-                        "ID_AUT_REST_02": false,
-                        "AUDIT_REST_01": true,
-                        "INTEGRITY_REST_02": true
-                }
+   "endpointConfig":{
+      "endpoint_type":"http",
+      "sandbox_endpoints":{
+         "url":"http://api"
+      },
+      "production_endpoints":{
+         "url":"http://api"
+      },
+      "endpoint_security":{
+         "production":{
+            "customParameters":{
+               "modi_auth":"false",
+               "pdnd_auth":"true",
+               "modi_fruizione":"false",
+               "pdnd_fruizione":"true",
+               "id_auth_channel_01":"false",
+               "id_auth_channel_02":"false",
+               "id_auth_rest_01":"false",
+               "id_auth_rest_02":"false",
+               "id_auth_soap_01":"false",
+               "id_auth_soap_02":"false",
+               "integrity_rest_01":"false",
+               "integrity_rest_02":"false",
+               "integrity_soap_01":"false",
+               "audit_rest_01_modi":"false",
+               "audit_rest_01_pdnd":"false",
+               "audit_rest_02":"false",
+               "pdnd_jwks_url":"",
+               "reference_certificate_type":"",
+               "jwt_header_name":"",
+               "key_identifier_type":"",
+               "apiType":"Fruizione",
+               "pdnd_api_url":"",
+               "api_aud":""
             },
-            "production": {
-                "password": null,
-                "tokenUrl": "",
-                "clientId": null,
-                "clientSecret": null,
-                "customParameters": {},
-                "type": "NONE",
-                "grantType": "",
-                "enabled": false,
-                "username": ""
-            }
-        }
-    },
+            "type":"weModI",
+            "enabled":true
+         },
+         "sandbox":{
+            "customParameters":{
+               "modi_auth":"false",
+               "pdnd_auth":"true",
+               "modi_fruizione":"false",
+               "pdnd_fruizione":"true",
+               "id_auth_channel_01":"false",
+               "id_auth_channel_02":"false",
+               "id_auth_rest_01":"false",
+               "id_auth_rest_02":"false",
+               "id_auth_soap_01":"false",
+               "id_auth_soap_02":"false",
+               "integrity_rest_01":"false",
+               "integrity_rest_02":"false",
+               "integrity_soap_01":"false",
+               "audit_rest_01_modi":"false",
+               "audit_rest_01_pdnd":"false",
+               "audit_rest_02":"false",
+               "pdnd_jwks_url":"",
+               "reference_certificate_type":"",
+               "jwt_header_name":"",
+               "key_identifier_type":" ",
+               "apiType":"Fruizione",
+               "pdnd_api_url":"",
+               "api_aud":""
+            },
+            "type":"weModI",
+            "enabled":true
+         }
+      }
+   },
 ```
+
+`"type":"weModI"` è necessario per mediare la richiesta tramite [weModI](#mediatore-di-autenticazione-in-fruizione), i `customParameters` sono elencanti nelle [properties di fruizione](#modi---pdnd-api-properties)
+
+## Handler di autorizzazione in erogazione
+In fase di erogazione avviene la validazione dei Voucher PDND e dei JWT ModI secondo i pattern dichiarati dall'e-service, la classe [ModiAuthenticationHandler](./src/main/java/it/profesia/carbon/apimgt/gateway/handlers/security/ModiAuthenticationHandler.java) implementa le logiche di autorizzazione, viene istanziata per mezzo del [Velocity Template](./src/main/resources/velocity_template.xml) in base alle [properties](#modi---pdnd-api-properties) definite nell'API di erogazione.

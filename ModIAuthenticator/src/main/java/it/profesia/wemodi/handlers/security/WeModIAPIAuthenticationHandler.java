@@ -7,11 +7,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import java.util.Map;
 
+import javax.cache.Cache;
+
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +38,7 @@ import com.google.gson.Gson;
 import org.wso2.carbon.apimgt.keymgt.model.entity.API;
 
 import it.profesia.carbon.apimgt.gateway.handlers.logging.ModiLogUtils;
+import it.profesia.carbon.apimgt.gateway.handlers.utils.CacheProviderWeModi;
 import it.profesia.wemodi.ApiConfig;
 
 /**
@@ -65,7 +66,6 @@ public class WeModIAPIAuthenticationHandler extends APIAuthenticationHandler {
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value = "LEST_LOST_EXCEPTION_STACK_TRACE", justification = "The exception needs to thrown for fault sequence invocation")
     protected void initializeAuthenticators() {
-        // TODO Auto-generated method stub
         WeModiAuthenticator authenticator = new WeModiAuthenticator();
         authenticator.init(synapseEnvironment);
         authenticators.add(authenticator);
@@ -80,7 +80,7 @@ public class WeModIAPIAuthenticationHandler extends APIAuthenticationHandler {
         log.info(ModiLogUtils.EROGAZIONE_START);
         try {
             API retrievedApi = GatewayUtils.getAPI(messageContext);
-            ApiConfig api = retrieveAPIInformations(retrievedApi.getUuid() /*"262d3465-8005-4708-9b48-3d6d9fd3715f"*/, null);
+            ApiConfig api = retrieveAPIInformations(retrievedApi.getUuid() , (String) messageContext.getProperty("tenant.info.domain"));
 
             org.apache.axis2.context.MessageContext axis2MC = ((Axis2MessageContext) messageContext).getAxis2MessageContext();
             Map headers = (Map) (axis2MC.getProperty(org.apache.axis2.context.MessageContext.TRANSPORT_HEADERS));
@@ -88,7 +88,7 @@ public class WeModIAPIAuthenticationHandler extends APIAuthenticationHandler {
             headers.put("weModI_API_Config", weModiApiConfig);
 
             if (super.handleRequest(messageContext) == true) {
-                // Validare gli header con i claim JWT
+                //TODO: Validare gli header con i claim JWT
             }
         } catch (DataLoadingException | IOException e) {
             log.error("Si è verificato un errore durante l'autorizzazione weModI dell'API: " + ExceptionUtils.getStackTrace(e));
@@ -101,15 +101,26 @@ public class WeModIAPIAuthenticationHandler extends APIAuthenticationHandler {
     /**
      * Recupera le informazioni dell'API invocata per ottenere le properties impostate in modo
      * da effettuare le opportune validazioni dei JWT ModI/PDND
+     * 
+     * @param apiID UUID dell'API
+     * @param tenantDomain Tenant di riferimento
      * @throws MalformedURLException
      */
     private ApiConfig retrieveAPIInformations(String apiID, String tenantDomain) throws DataLoadingException, IOException {
         //String path = "/apis/{apiId}";
-        ApiConfig api = new ApiConfig();
         String path = "/apis/" + apiID;
         String serviceURLStr = getEventHubConfigurationDto.getServiceUrl().concat("/api/am/publisher/v4");
         HttpGet method = new HttpGet(serviceURLStr + path);
+        ApiConfig apiConfig = null;
+        String apiConfigKey = "apiConfig:" + apiID + "@" + tenantDomain;
 
+        if (getWeModiCacheEnable()) {
+            Object cache = getWeModiCache().get(apiConfigKey);
+            if (cache != null) {
+                apiConfig = (ApiConfig) cache;
+            }
+        }
+        if (apiConfig == null) {
             URL serviceURL = new URL(serviceURLStr + path);
             byte[] credentials = Base64.encodeBase64(("admin" + ":" + "admin").getBytes(StandardCharsets.UTF_8)); //getServiceCredentials(getEventHubConfigurationDto);
             int servicePort = serviceURL.getPort();
@@ -162,53 +173,23 @@ public class WeModIAPIAuthenticationHandler extends APIAuthenticationHandler {
                 log.debug("Response : " + responseString);
             }
             JSONObject responseJson = new JSONObject(responseString);
-            //try {
-                //responseJson = (JSONObject) new JSONParser().parse(responseString);
-                JSONObject propertiesJson = responseJson.getJSONObject("additionalPropertiesMap");
-                //propertiesJson.
-                Iterator propertiesIterator = propertiesJson.keys();
-                while (propertiesIterator.hasNext()) {
-                    String propertyName = (String) propertiesIterator.next();
-                    JSONObject property = propertiesJson.getJSONObject(propertyName);
-                    log.debug("Recuperata property dell'API: " + property);
-                    String name = property.getString("name").trim().toUpperCase();
-                    String value = property.getString("value");
-                    switch (name) {
-                        case ApiConfig.ID_AUTH_CHANNEL_01:
-                            api.setIdAuthChannel01(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.ID_AUTH_CHANNEL_02:
-                            api.setIdAuthChannel02(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.ID_AUTH_REST_01:
-                            api.setIdAuthRest01(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.ID_AUTH_REST_02:
-                            api.setIdAuthRest02(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.INTEGRITY_REST_01:
-                            api.setIntegrityRest01(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.INTEGRITY_REST_02:
-                            api.setIntegrityRest02(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.AUDIT_REST_01:
-                            api.setAuditRest01(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.AUDIT_REST_02:
-                            api.setAuditRest02(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.PDND_AUTH:
-                            api.setPdndAuth(BooleanUtils.toBooleanObject(value));
-                            break;
-                        case ApiConfig.MODI_TOKEN_NAME:
-                            api.setModiTokenName(value);
-                            break;
-                    }
-                }
-                log.info("Patterns per l'API: " + api.getPatterns());
+            JSONObject propertiesJson = responseJson.getJSONObject("additionalPropertiesMap");
 
-            return api;       
+            apiConfig = new ApiConfig(propertiesJson);
+            getWeModiCache().put(apiConfigKey, apiConfig);
+        }
+
+        log.info("Patterns per l'API: " + apiConfig.getPatterns());
+
+        return apiConfig;       
+    }
+
+    private static Cache getWeModiCache() {
+        return CacheProviderWeModi.getWeModiCache();
+    }
+
+    private static boolean getWeModiCacheEnable() {
+        return CacheProviderWeModi.isEnabledCache();
     }
 
 }

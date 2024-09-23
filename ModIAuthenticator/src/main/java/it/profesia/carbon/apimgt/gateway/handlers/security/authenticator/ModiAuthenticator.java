@@ -78,10 +78,10 @@ import it.profesia.carbon.apimgt.gateway.handlers.security.JWTClaims;
 import it.profesia.carbon.apimgt.gateway.handlers.security.JWTInfo;
 import it.profesia.carbon.apimgt.gateway.handlers.security.JWTValidator;
 import it.profesia.carbon.apimgt.gateway.handlers.utils.SOAPUtil;
-import it.profesia.carbon.apimgt.gateway.handlers.utils.SubscriptionService;
-import it.profesia.carbon.apimgt.subscription.dao.CertAppMapping;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
-import it.profesia.carbon.apimgt.subscription.utils.CertificateMetadata;
+import it.profesia.wemodi.subscriptions.SubscriptionService;
+import it.profesia.wemodi.subscriptions.dao.CertAppMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.utils.CertificateMetadata;
 
 /**
  * This class used to authenticate InternalKey
@@ -629,7 +629,7 @@ public class ModiAuthenticator implements Authenticator {
             IOUtils.copy(in, byteArrayOutputStream);
             byteArrayOutputStream.flush();
             String originalPayload = byteArrayOutputStream.toString();
-            log.info("originalPayload: "+originalPayload);
+            log.debug("originalPayload: "+originalPayload);
             in =  new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
             RelayUtils.buildMessage(axis2MC, false, in);
             digest = convertToDigest(originalPayload);

@@ -15,10 +15,9 @@ import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIManagerDatabaseException;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 
-import it.profesia.carbon.apimgt.subscription.dao.CertAppMapping;
-import it.profesia.carbon.apimgt.subscription.dao.PdndPKMapping;
-import it.profesia.carbon.apimgt.subscription.utils.CertificateMetadata;
-import it.profesia.carbon.apimgt.subscription.utils.CertificateUtils;
+import it.profesia.wemodi.subscriptions.dao.CertAppMapping;
+import it.profesia.wemodi.subscriptions.dao.PdndPKMapping;
+import it.profesia.wemodi.subscriptions.utils.CertificateUtils;
 
 public class ModiCertificateImpl implements ModiCertificate {
     private static final Log log = LogFactory.getLog(ModiCertificate.class);
