@@ -73,7 +73,7 @@ maintenance:
 name: weModI - estensione WSO2
 platforms:
   - web
-releaseDate: '2024-04-15'
+releaseDate: '2024-09-16'
 softwareType: addon
-softwareVersion: 2.0.0
+softwareVersion: 2.3.0
 url: 'https://github.com/profesiait/weModI'
