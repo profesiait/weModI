@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>it.profesia</groupId>
+        <artifactId>weModI</artifactId>
+        <version>2.4.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>it.profesia.wemodi.authenticator</artifactId>
+    <packaging>bundle</packaging>
+    <name>weModI Authenticator (WSO2 Carbon API Gateway)</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${maven.bundle.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Export-Package>
+                            it.profesia.carbon.apimgt.gateway.*,
+                            it.profesia.carbon.apimgt.subscription.dao.*,
+                            it.profesia.carbon.apimgt.subscription.utils.*,
+                            it.profesia.wemodi.handlers.*;version="${project.version}",
+                            it.profesia.wemodi.mediator.*;version="${project.version}",
+                            org.apache.ws.security.*,
+                            org.apache.xml.security.*,
+                        </Export-Package>
+                        <Import-Package>
+                            it.profesia.wemodi.*,
+                            it.profesia.carbon.apimgt.subscription.dao.*,
+                            *; resolution:=optional
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.apimgt</groupId>
+            <artifactId>org.wso2.carbon.apimgt.gateway</artifactId>
+            <version>${carbon.apimgt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>it.profesia</groupId>
+            <artifactId>it.profesia.wemodi.subscription</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>it.profesia</groupId>
+            <artifactId>it.profesia.wemodi.components</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+        <!-- 
+                lo importo solo per poterlo utilizzare all'interno di WeModiMediator (API GateWay)
+                quando sarà terminato il weModI as Key Manager (API Control Plane) ed il token PDND
+                potrà essere ottenuto tramite una chiamata a /token si potrà rimouovere
+            -->
+            <groupId>it.profesia</groupId>
+            <artifactId>it.profesia.wemodi.providerJWT</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+			<groupId>org.apache.santuario</groupId>
+            <artifactId>xmlsec</artifactId>
+			<version>1.5.2</version>
+        </dependency>
+        <dependency>
+		    <groupId>org.apache.ws.security.wso2</groupId>
+		    <artifactId>wss4j</artifactId>
+		    <version>1.6.0-wso2v2</version>
+		</dependency>
+    </dependencies>
+
+</project>
