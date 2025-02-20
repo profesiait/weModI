@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <groupId>it.profesia</groupId>
@@ -11,9 +8,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>it.profesia.wemodi.providerJWT</artifactId>
+    <artifactId>it.profesia.wemodi.subscription</artifactId>
     <packaging>bundle</packaging>
-    <name>weModI Provider JWT (WSO2 Carbon API Control Plane)</name>
+
+    <name>weModI Subscription (WSO2 Carbon API Control Plane)</name>
 
     <build>
         <plugins>
@@ -26,13 +24,20 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                        <!-- Must include tag also if empty -->
+                        </Private-Package>
+                        <Import-Package>
+                        	org.wso2.carbon.apimgt.api.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.impl.utils.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.common.gateway.util.*;version="9.20.74",
+                        	org.wso2.carbon.apimgt.impl.*;version="9.20.74",
+                        	org.wso2.carbon.user.core.*;version="4.6.3",
+                        	org.wso2.carbon.utils.*;version="4.6.3",
+                            it.profesia.carbon.apimgt.subscription.dao.*;version="${project.version}",
+                        </Import-Package>
                         <Export-Package>
-                            <!-- 
-                                 lo esporto solo per poterlo utilizzare all'interno di WeModiMediator (API GateWay)
-                                    quando sarà terminato il weModI as Key Manager (API Control Plane) ed il token PDND
-                                    potrà essere ottenuto tramite una chiamata a /token si potrà rimouovere
-                                -->
-                            it.profesia.wemodi.providers.jwt.*;version="${project.version}",
+                            it.profesia.carbon.apimgt.subscription.*;version="${project.version}",
                         </Export-Package>
                     </instructions>
                 </configuration>
